@@ -1,7 +1,13 @@
 const { google } = require('googleapis');
 const { createBasicAuthToken } = require('../utils/util.js');
 const { default: axios } = require('axios');
+const { BadRequest } = require('http-errors');
 const UserService = require('./user.service.js');
+const Web3Helper = require('../utils/web3Helper');
+const {
+  validateAuth,
+  validateWalletLogin,
+} = require('../validators/auth.validator.js');
 
 const {
   DISCORD_CLIENT_ID,
@@ -20,6 +26,7 @@ const {
 class AuthService {
   constructor() {
     this.userService = new UserService();
+    this.web3Helper = new Web3Helper();
   }
 
   getDiscordAuthorizationUrl() {
@@ -191,6 +198,69 @@ class AuthService {
       });
     }
 
+    return user.generateAuthToken();
+  }
+
+  async signup(body) {
+    const { error } = validateAuth(body);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    let user = await this.userService.getUserByEmail(body.email);
+    if (user) {
+      throw new BadRequest('Email already exists');
+    }
+    user = await this.userService.createUser({
+      email: body.email,
+      password: body.password,
+    });
+
+    return user.generateAuthToken();
+  }
+
+  async login(body) {
+    const { error } = validateAuth(body);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    let user = await this.userService.getUserByEmail(body.email);
+    if (!user) throw new BadRequest('User not found');
+
+    const correctPassword = user.verifyPassword(body.password);
+    if (!correctPassword) throw new BadRequest('Incorrect password');
+
+    return user.generateAuthToken();
+  }
+
+  async walletLogin(body, user) {
+    const { error } = validateWalletLogin(body);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    const { blockchain, walletAddress, signature } = body;
+
+    let result;
+    if (blockchain === 'SOL') {
+      result = await this.web3Helper.verifySolanaSignature(
+        walletAddress,
+        signature
+      );
+    } else {
+      result = await this.web3Helper.verifyEthSignature(
+        walletAddress,
+        signature
+      );
+    }
+    if (!result) throw new BadRequest('Signature verification failed');
+
+    if (user) {
+      user.walletAddress = walletAddress;
+      await user.save();
+    } else {
+      let user = await this.userService.getUserByWalletAddress(walletAddress);
+      if (!user) {
+        user = await this.userService.createUser({
+          walletAddress,
+        });
+      }
+    }
     return user.generateAuthToken();
   }
 }

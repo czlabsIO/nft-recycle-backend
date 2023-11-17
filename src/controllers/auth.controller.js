@@ -1,4 +1,3 @@
-const { BadRequest } = require('http-errors');
 const AuthService = require('../services/auth.service.js');
 
 const authService = new AuthService();
@@ -46,6 +45,21 @@ class AuthController {
     const { code } = req.body;
     const authToken = await authService.facebookLogin(code);
     res.send({ message: 'Successfully logged in with facebook', authToken });
+  }
+
+  async signup(req, res) {
+    const authToken = await authService.signup(req.body);
+    res.send({ message: 'Successful signup with email', authToken });
+  }
+
+  async login(req, res) {
+    const authToken = await authService.login(req.body);
+    res.send({ message: 'Successfully logged in with email', authToken });
+  }
+
+  async walletLogin(req, res) {
+    const authToken = await authService.walletLogin(req.body, req.user);
+    res.send({ message: 'Successfully logged in with wallet', authToken });
   }
 }
 

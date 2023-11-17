@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/auth.controller');
+const { checkAuthToken } = require('../middleware/auth.middleware');
 
 const authController = new AuthController();
 
@@ -12,5 +13,8 @@ router.get('/twitter/auth-url', authController.twitterAuthUrl);
 router.post('/twitter/login', authController.twitterLogin);
 router.get('/facebook/auth-url', authController.facebookAuthUrl);
 router.post('/facebook/login', authController.facebookLogin);
+router.post('/signup', authController.signup);
+router.post('/login', authController.login);
+router.post('/wallet/login', checkAuthToken, authController.walletLogin);
 
 module.exports = router;

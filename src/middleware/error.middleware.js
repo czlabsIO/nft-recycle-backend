@@ -7,14 +7,14 @@ module.exports = function (err, req, res, next) {
     return res.status(err.status).send({ error: err });
   }
 
+  logger.error(err);
+
   if (isAxiosError(err)) {
     return res.status(500).send({
       message: 'Internal Server Error',
       description: err.response.data,
     });
   }
-
-  logger.error(err);
 
   res.status(500).send({
     error: { message: 'Internal Server Error', description: err.message },
