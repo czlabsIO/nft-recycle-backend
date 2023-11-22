@@ -11,9 +11,10 @@ function validateAuth(body) {
 
 function validateWalletLogin(body) {
   const schema = Joi.object({
-    blockchain: Joi.string().valid('ETH', 'SOL').required(),
+    blockchain: Joi.string().valid('ETHEREUM', 'SOLANA').required(),
     walletAddress: Joi.string().required(),
     signature: Joi.string().required(),
+    isLedger: Joi.boolean().required(),
   });
   const result = schema.validate(body);
   return result;

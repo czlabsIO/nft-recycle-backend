@@ -39,6 +39,16 @@ class Web3Helper {
     return walletAddress === address;
   }
 
+  async verifySolLedgerSign(walletAddress, signature) {
+    const tx = await this.solConnection.getParsedTransaction(signature, {
+      commitment: 'confirmed',
+    });
+    const pubKey = tx?.transaction?.message?.accountKeys[0]?.pubkey
+      ? tx.transaction.message.accountKeys[0].pubkey.toString()
+      : '';
+    return pubKey === walletAddress;
+  }
+
   async getSolanaCollectionName(collectionAddress) {
     const mintAddress = new PublicKey(collectionAddress);
     const data = await this.mx.nfts().findByMint({ mintAddress });

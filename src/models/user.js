@@ -33,11 +33,13 @@ const userSchema = mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.password;
+      },
+    },
   }
 );
-
-// userSchema.set('toJSON', { virtuals: true });
-// userSchema.set('toObject', { virtuals: true });
 
 userSchema.pre('save', function (next) {
   const user = this;

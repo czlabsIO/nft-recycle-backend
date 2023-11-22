@@ -6,6 +6,7 @@ const db = require('./startup/db');
 const cors = require('cors');
 const error = require('./middleware/error.middleware');
 const { logger } = require('./utils/logger');
+const { connectMoralis } = require('./utils/moralis');
 const routes = require('./routes/routes');
 
 const app = express();
@@ -20,6 +21,7 @@ app.use(error);
 async function main() {
   catchUnhandledError();
   await db();
+  await connectMoralis();
 
   const { PORT } = process.env;
 

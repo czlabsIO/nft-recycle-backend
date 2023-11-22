@@ -234,15 +234,20 @@ class AuthService {
     const { error } = validateWalletLogin(body);
     if (error) throw new BadRequest(error.details[0].message);
 
-    const { blockchain, walletAddress, signature } = body;
+    const { blockchain, walletAddress, signature, isLedger } = body;
 
     let result;
-    if (blockchain === 'SOL') {
+    if (blockchain === 'SOLANA' && isLedger === false) {
       result = await this.web3Helper.verifySolanaSignature(
         walletAddress,
         signature
       );
-    } else {
+    } else if (blockchain === 'SOLANA' && isLedger === true) {
+      result = await this.web3Helper.verifySolLedgerSign(
+        walletAddress,
+        signature
+      );
+    } else if (blockchain === 'ETHEREUM') {
       result = await this.web3Helper.verifyEthSignature(
         walletAddress,
         signature
@@ -260,6 +265,7 @@ class AuthService {
           walletAddress,
         });
       }
+      return user.generateAuthToken();
     }
     return user.generateAuthToken();
   }

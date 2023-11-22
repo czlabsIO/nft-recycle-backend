@@ -7,5 +7,8 @@ const userController = new UserController();
 
 router.get('/getSolanaNfts', auth, userController.getSolanaNfts);
 router.get('/getEthereumNfts', auth, userController.getEthereumNfts);
+router.get('/getDetails', auth, userController.getUserDetails);
+router.post('/generateInvoice', auth, userController.generateInvoice);
+router.post('/addEmail', auth, userController.addEmail);
 
 module.exports = router;
