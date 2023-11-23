@@ -14,35 +14,13 @@ const logger = createLogger({
   ),
   transports: [
     new transports.Console(),
-    // new transports.MongoDB({
-    //   db: process.env.DB_URL,
-    //   options: {
-    //     useUnifiedTopology: true,
-    //   },
-    // }),
+    new transports.MongoDB({
+      db: process.env.DB_URL,
+      options: {
+        useUnifiedTopology: true,
+      },
+    }),
   ],
 });
-
-// const schedulerLogger = createLogger({
-//   level: 'debug',
-//   format: format.combine(
-//     format.timestamp({
-//       format: 'YYYY-MM-DD HH:mm:ss',
-//     }),
-//     format.errors({ stack: true }),
-//     format.json(),
-//     format.metadata()
-//   ),
-//   transports: [
-//     new transports.Console(),
-//     new transports.MongoDB({
-//       db: process.env.DB_URL,
-//       options: {
-//         useUnifiedTopology: true,
-//       },
-//       collection: 'schedulerLog',
-//     }),
-//   ],
-// });
 
 module.exports = { logger };

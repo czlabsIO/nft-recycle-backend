@@ -16,25 +16,6 @@ const connectMoralis = async () => {
   }
 };
 
-const getWalletCollections = async (wallet) => {
-  try {
-    let cursor = null;
-    let collections = [];
-    do {
-      const response = await Moralis.EvmApi.nft.getWalletNFTCollections({
-        chain: EvmChain.ETHEREUM,
-        address: wallet,
-        cursor,
-      });
-      collections.push(...response.jsonResponse.result);
-      cursor = response.jsonResponse.cursor;
-    } while (cursor != '' && cursor != null);
-    return collections;
-  } catch (err) {
-    logger.error(err);
-  }
-};
-
 const getEthereumNfts = async (wallet) => {
   try {
     let cursor = null;
@@ -59,4 +40,4 @@ const getEthereumNfts = async (wallet) => {
   }
 };
 
-module.exports = { connectMoralis, getWalletCollections, getEthereumNfts };
+module.exports = { connectMoralis, getEthereumNfts };

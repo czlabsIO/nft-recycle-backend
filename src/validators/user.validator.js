@@ -2,14 +2,19 @@ const Joi = require('joi');
 
 function validateGenerateInvoice(body) {
   const schema = Joi.object({
-    txHashes: Joi.array().required().items(Joi.string()),
     blockchain: Joi.string().valid('ETHEREUM', 'SOLANA').required(),
+    fees: Joi.string().required(),
+    feesTxHash: Joi.string().required(),
+    fund: Joi.string().required(),
+    fundTxHash: Joi.string().required(),
     assets: Joi.array()
       .required()
       .items(
         Joi.object({
           nft: Joi.string().required(),
           collection: Joi.string().required(),
+          txHash: Joi.string().required(),
+          amount: Joi.string().required(),
         })
       ),
   });
@@ -26,17 +31,7 @@ function validateAddEmail(body) {
   return result;
 }
 
-function validateSearchByName(query) {
-  const schema = Joi.object({
-    blockchain: Joi.string().valid('ETHEREUM', 'SOLANA').required(),
-    key: Joi.string().required(),
-  });
-  const result = schema.validate(query);
-  return result;
-}
-
 module.exports = {
   validateGenerateInvoice,
   validateAddEmail,
-  validateSearchByName,
 };

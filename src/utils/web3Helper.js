@@ -2,6 +2,7 @@ const axios = require('axios');
 const nacl = require('tweetnacl');
 const bs58 = require('bs58');
 const ethers = require('ethers');
+const fetch = require('node-fetch');
 const { Connection, PublicKey, clusterApiUrl } = require('@solana/web3.js');
 const { Metaplex } = require('@metaplex-foundation/js');
 
@@ -9,7 +10,6 @@ const {
   NODE_ENV,
   SOLANA_CLUSTER,
   SOL_RPC,
-  ETH_RPC,
   FE_MESSAGE_TO_SIGN,
   OPENSEA_API_KEY,
 } = process.env;
@@ -20,7 +20,6 @@ class Web3Helper {
       SOLANA_CLUSTER === 'mainnet' ? SOL_RPC : clusterApiUrl('devnet')
     );
     this.mx = new Metaplex(this.solConnection);
-    this.ethProvider = new ethers.JsonRpcProvider(ETH_RPC);
   }
 
   async verifySolanaSignature(walletAddress, signature) {
@@ -86,6 +85,70 @@ class Web3Helper {
       next = openseaRet.data.next;
     }
     return nfts;
+  }
+
+  async getSolanaNfts(walletAddress) {
+    const graphql = JSON.stringify({
+      operationName: 'InventoryBySlug',
+      variables: {
+        owner: walletAddress,
+        slugsToInflate: null,
+        includeFrozen: true,
+      },
+      query: `query 
+      InventoryBySlug($owner: String!, $slugsToInflate: [String!], $includeFrozen: Boolean) { 
+        inventoryBySlug(
+          owner: $owner
+          slugsToInflate: $slugsToInflate
+          includeFrozen: $includeFrozen
+        ) {
+          ...ReducedInstrumentWithMints
+        } 
+      }
+      fragment ReducedInstrumentWithMints on InstrumentWithMints {
+        slug
+        slugDisplay
+        name
+        imageUri
+        id
+        mintCount
+        tokenStandard
+        mints {
+          ...ReducedMintWithColl
+        }
+      }
+      fragment ReducedMintWithColl on MintWithColl {
+        ...ReducedMint
+      }
+      fragment ReducedMint on TLinkedTxMintTV2 {
+        onchainId
+        name
+        tokenStandard
+        imageUri
+        rarityRankTT
+      }`,
+    });
+    const graphql_res = await fetch('https://graphql.tensor.trade/graphql', {
+      headers: {
+        accept: '*/*',
+        'accept-language': 'en,en-US;q=0.9',
+        'content-type': 'application/json',
+        'sec-ch-ua':
+          '"Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-site',
+        Referer: 'https://www.tensor.trade/',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+      },
+      body: graphql,
+      method: 'POST',
+    });
+
+    const graphql_data = await graphql_res.json();
+    return graphql_data.data.inventoryBySlug;
   }
 }
 

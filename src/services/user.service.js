@@ -6,15 +6,13 @@ const Invoice = require('../models/invoice');
 const {
   validateGenerateInvoice,
   validateAddEmail,
-  validateSearchByName,
 } = require('../validators/user.validator');
 const { createInvoice } = require('../utils/createInvoice');
 const { uploadToS3 } = require('../utils/amazonS3');
 const { sendMailWithTemplate } = require('../utils/nodemailer');
-const { AWS_BUCKET_NAME, AWS_REGION } = process.env;
-const fs = require('fs');
-const { getWalletCollections, getEthereumNfts } = require('../utils/moralis');
+const { getEthereumNfts } = require('../utils/moralis');
 const { logger } = require('../utils/logger');
+const { AWS_BUCKET_NAME, AWS_REGION } = process.env;
 
 class UserService {
   constructor() {
@@ -44,7 +42,13 @@ class UserService {
   async getSolanaNfts(user, query) {
     if (!user.walletAddress) throw new BadRequest('No wallet address found');
 
-    let nfts = await this.web3Helper.getAllNftsOfOwner(user.walletAddress);
+    let nfts = [];
+    try {
+      nfts = await this.web3Helper.getSolanaNfts(user.walletAddress);
+    } catch (err) {
+      logger.error(err);
+      throw new BadRequest('Failed to fetch NFTs');
+    }
 
     if (query.key) {
       const condition = new RegExp(query.key, 'i');
@@ -57,39 +61,15 @@ class UserService {
     const groupedData = {};
     await Promise.all(
       nfts.map(async (item) => {
-        const collectionAddress = item?.collection?.address;
-        if (collectionAddress) {
-          if (!groupedData[collectionAddress]) {
-            groupedData[collectionAddress] = {
-              collectionAddress,
-              nfts: [],
-            };
-          }
-          let metadata;
-          try {
-            const { data } = await axios.get(item.uri);
-            metadata = data;
-          } catch (err) {
-            logger.error(err);
-          }
-          groupedData[collectionAddress].nfts.push({
-            name: item.name,
-            symbol: item.symbol,
-            address: item.address,
-            mintAddress: item.mintAddress,
-            metadata: item.uri,
-            image: metadata ? metadata.image : null,
-          });
+        const collectionAddress = item.id;
+        if (!groupedData[collectionAddress]) {
+          groupedData[collectionAddress] = {
+            collectionAddress,
+            collectionName: item.name,
+            collectionImage: item.imageUri,
+            nfts: item.mints,
+          };
         }
-      })
-    );
-    const collections = Object.keys(groupedData);
-    await Promise.all(
-      collections.map(async (collection) => {
-        const collectionName = await this.web3Helper.getSolanaCollectionName(
-          collection
-        );
-        groupedData[collection].collectionName = collectionName;
       })
     );
     return groupedData;
@@ -147,10 +127,8 @@ class UserService {
 
     let doc = createInvoice(body);
     // doc.pipe(fs.createWriteStream('test.pdf'));
-    const { Key, Location } = await uploadToS3(
-      doc,
-      `${new Date().getTime()}.pdf`
-    );
+    const time = new Date().getTime();
+    const { Key, Location } = await uploadToS3(doc, `${time}.pdf`);
 
     const invoice = await Invoice.create({
       userId: user._id,
@@ -164,6 +142,8 @@ class UserService {
     return {
       invoice,
       link: Location,
+      assets: body.assets,
+      time,
     };
   }
 

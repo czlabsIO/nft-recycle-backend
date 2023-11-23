@@ -1,13 +1,17 @@
+const _ = require('lodash');
 const path = require('path');
 const PDFDocument = require('pdfkit');
+const { SOLANA_CLUSTER, NODE_ENV } = process.env;
 
 function createInvoice(invoice) {
   let doc = new PDFDocument({ size: 'A4', margin: 50 });
 
+  doc.on('pageAdded', () => doc.fillColor('#444444').fontSize(10));
+
   generateHeader(doc);
   generateCustomerInformation(doc, invoice);
-  // generateInvoiceTable(doc, invoice);
-  generateFooter(doc);
+  generateInvoiceTable(doc, invoice);
+  // generateFooter(doc);
 
   doc.end();
   return doc;
@@ -38,8 +42,8 @@ function generateCustomerInformation(doc, invoice) {
     .text(formatDate(new Date()), 150, customerInformationTop)
     .text('Blockchain:', 50, customerInformationTop + 15)
     .text(invoice.blockchain, 150, customerInformationTop + 15)
-    .text('Transaction Hash:', 50, customerInformationTop + 30)
-    .text(invoice.txHash, 150, customerInformationTop + 30)
+    .text('Number of NFTs:', 50, customerInformationTop + 30)
+    .text(invoice.assets.length, 150, customerInformationTop + 30)
     .moveDown();
 
   generateHr(doc, 252);
@@ -47,104 +51,118 @@ function generateCustomerInformation(doc, invoice) {
 
 function generateInvoiceTable(doc, invoice) {
   let i;
-  const invoiceTableTop = 330;
+  const invoiceTableTop = 300;
+  const solBaseUrl = 'https://solscan.io/tx/';
+  const ethBaseUrl =
+    NODE_ENV === 'production'
+      ? 'https://etherscan.io/tx/'
+      : 'https://sepolia.etherscan.io/tx/';
+  const feesTx =
+    invoice.blockchain === 'SOLANA'
+      ? solBaseUrl + `${invoice.feesTxHash}?cluster=${SOLANA_CLUSTER}`
+      : ethBaseUrl + invoice.feesTxHash;
+  const fundTx =
+    invoice.blockchain === 'SOLANA'
+      ? solBaseUrl + `${invoice.fundTxHash}?cluster=${SOLANA_CLUSTER}`
+      : ethBaseUrl + invoice.fundTxHash;
 
   doc.font('Helvetica-Bold');
   generateTableRow(
     doc,
     invoiceTableTop,
-    'Item',
-    'Description',
-    'Unit Cost',
-    'Quantity',
-    'Line Total'
+    'Date',
+    'Transaction',
+    'Type',
+    'Amount'
   );
   generateHr(doc, invoiceTableTop + 20);
   doc.font('Helvetica');
 
-  for (i = 0; i < invoice.items.length; i++) {
-    const item = invoice.items[i];
-    const position = invoiceTableTop + (i + 1) * 30;
+  generateTableRow(
+    doc,
+    invoiceTableTop + 30,
+    formatDate(new Date()),
+    'Service Fees',
+    'You paid',
+    invoice.fees,
+    feesTx
+  );
+  generateTableRow(
+    doc,
+    invoiceTableTop + 60,
+    formatDate(new Date()),
+    'Funds Recieved',
+    'You received',
+    invoice.fund,
+    fundTx
+  );
+  let invoiceItems = invoiceTableTop + 60;
+
+  const firstPage = invoice.assets.splice(0, 14);
+  const items = _.chunk(invoice.assets, 24);
+  for (i = 0; i < firstPage.length; i++) {
+    const item = firstPage[i];
+    const position = invoiceItems + (i + 1) * 30;
+    const tx =
+      invoice.blockchain === 'SOLANA'
+        ? solBaseUrl + `${item.txHash}?cluster=${SOLANA_CLUSTER}`
+        : ethBaseUrl + item.txHash;
     generateTableRow(
       doc,
       position,
-      item.item,
-      item.description,
-      formatCurrency(item.amount / item.quantity),
-      item.quantity,
-      formatCurrency(item.amount)
+      formatDate(new Date()),
+      item.nft,
+      'You received',
+      item.amount,
+      tx
     );
-
-    generateHr(doc, position + 20);
   }
-
-  const subtotalPosition = invoiceTableTop + (i + 1) * 30;
-  generateTableRow(
-    doc,
-    subtotalPosition,
-    '',
-    '',
-    'Subtotal',
-    '',
-    formatCurrency(invoice.subtotal)
-  );
-
-  const paidToDatePosition = subtotalPosition + 20;
-  generateTableRow(
-    doc,
-    paidToDatePosition,
-    '',
-    '',
-    'Paid To Date',
-    '',
-    formatCurrency(invoice.paid)
-  );
-
-  const duePosition = paidToDatePosition + 25;
-  doc.font('Helvetica-Bold');
-  generateTableRow(
-    doc,
-    duePosition,
-    '',
-    '',
-    'Balance Due',
-    '',
-    formatCurrency(invoice.subtotal - invoice.paid)
-  );
-  doc.font('Helvetica');
+  for (let i = 0; i < items.length; i++) {
+    doc.addPage();
+    invoiceItems = 50;
+    for (j = 0; j < items[i].length; j++) {
+      const item = items[i][j];
+      const position = invoiceItems + (j + 1) * 30;
+      const tx =
+        invoice.blockchain === 'SOLANA'
+          ? solBaseUrl + `${item.txHash}?cluster=${SOLANA_CLUSTER}`
+          : ethBaseUrl + item.txHash;
+      generateTableRow(
+        doc,
+        position,
+        formatDate(new Date()),
+        item.nft,
+        'You received',
+        item.amount,
+        tx
+      );
+    }
+  }
 }
 
 function generateFooter(doc) {
-  doc.fontSize(10).text('This is a system generated receipt', 50, 750, {
+  doc.fontSize(10).text('This is a system generated receipt', 50, 780, {
     align: 'center',
     width: 500,
   });
 }
 
-function generateTableRow(
-  doc,
-  y,
-  item,
-  description,
-  unitCost,
-  quantity,
-  lineTotal
-) {
+function generateTableRow(doc, y, date, nft, type, amount, transaction = null) {
+  let obj = { width: 250 };
+  if (nft !== 'Transaction') {
+    obj = { link: transaction, underline: true, width: 250 };
+  }
   doc
     .fontSize(10)
-    .text(item, 50, y)
-    .text(description, 150, y)
-    .text(unitCost, 280, y, { width: 90, align: 'right' })
-    .text(quantity, 370, y, { width: 90, align: 'right' })
-    .text(lineTotal, 0, y, { align: 'right' });
+    .text(date, 50, y)
+    .text(nft, 130, y, obj)
+    .text(type, 400, y, { width: 90 })
+    .text(amount, 500, y)
+    .moveDown();
 }
 
 function generateHr(doc, y) {
   doc.strokeColor('#aaaaaa').lineWidth(1).moveTo(50, y).lineTo(550, y).stroke();
-}
-
-function formatCurrency(cents) {
-  return '$' + (cents / 100).toFixed(2);
 }
 
 function formatDate(date) {
