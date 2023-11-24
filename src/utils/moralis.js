@@ -32,7 +32,6 @@ const getEthereumNfts = async (wallet) => {
       });
       nfts.push(...response.jsonResponse.result);
       cursor = response.jsonResponse.cursor;
-      console.log(response.jsonResponse.page);
     } while (cursor != '' && cursor != null);
     return nfts;
   } catch (err) {
