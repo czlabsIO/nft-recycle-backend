@@ -9,12 +9,37 @@ const invoiceSchema = mongoose.Schema(
     blockchain: {
       type: String,
     },
-    txHash: {
+    fees: {
+      type: String,
+    },
+    feesTxHash: {
+      type: String,
+    },
+    fund: {
+      type: String,
+    },
+    fundTxHash: {
       type: String,
     },
     key: {
       type: String,
     },
+    assets: [
+      {
+        nft: {
+          type: String,
+        },
+        collectionName: {
+          type: String,
+        },
+        txHash: {
+          type: String,
+        },
+        amount: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

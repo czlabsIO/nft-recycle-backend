@@ -12,7 +12,7 @@ function validateGenerateInvoice(body) {
       .items(
         Joi.object({
           nft: Joi.string().required(),
-          collection: Joi.string().required(),
+          collectionName: Joi.string().required(),
           txHash: Joi.string().required(),
           amount: Joi.string().required(),
         })

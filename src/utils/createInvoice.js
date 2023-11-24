@@ -98,8 +98,8 @@ function generateInvoiceTable(doc, invoice) {
   );
   let invoiceItems = invoiceTableTop + 60;
 
-  const firstPage = invoice.assets.splice(0, 14);
-  const items = _.chunk(invoice.assets, 24);
+  const firstPage = invoice.assets.slice(0, 14);
+  const items = _.chunk(invoice.assets.slice(14), 24);
   for (i = 0; i < firstPage.length; i++) {
     const item = firstPage[i];
     const position = invoiceItems + (i + 1) * 30;
