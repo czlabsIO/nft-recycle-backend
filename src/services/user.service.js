@@ -132,6 +132,7 @@ class UserService {
 
     const invoice = await Invoice.create({
       userId: user._id,
+      walletAddress: user.walletAddress,
       blockchain: body.blockchain,
       fees: body.fees,
       feesTxHash: body.feesTxHash,

@@ -6,6 +6,9 @@ const invoiceSchema = mongoose.Schema(
       type: mongoose.Types.ObjectId,
       required: true,
     },
+    walletAddress: {
+      type: String,
+    },
     blockchain: {
       type: String,
     },
