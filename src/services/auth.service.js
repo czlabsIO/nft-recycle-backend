@@ -6,6 +6,7 @@ const UserService = require('./user.service.js');
 const Web3Helper = require('../utils/web3Helper');
 const {
   validateAuth,
+  validateSocialAuth,
   validateWalletLogin,
 } = require('../validators/auth.validator.js');
 
@@ -38,7 +39,12 @@ class AuthService {
     return url.toString();
   }
 
-  async discordLogin(code) {
+  async discordLogin(body) {
+    const { error } = validateSocialAuth(body);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    const { code } = body;
+
     const { data: tokenData } = await axios.post(
       'https://discord.com/api/oauth2/token',
       new URLSearchParams({
@@ -80,7 +86,12 @@ class AuthService {
     return GOOGLE_CLIENT_ID;
   }
 
-  async googleLogin(code) {
+  async googleLogin(body) {
+    const { error } = validateSocialAuth(body);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    const { code } = body;
+
     const oauth2Client = new google.auth.OAuth2(
       GOOGLE_CLIENT_ID,
       GOOGLE_CLIENT_SECRET,
@@ -119,7 +130,12 @@ class AuthService {
     return url.toString();
   }
 
-  async twitterLogin(code) {
+  async twitterLogin(body) {
+    const { error } = validateSocialAuth(body);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    const { code } = body;
+
     const { data: tokenData } = await axios.post(
       'https://api.twitter.com/2/oauth2/token',
       new URLSearchParams({
@@ -166,7 +182,12 @@ class AuthService {
     return url.toString();
   }
 
-  async facebookLogin(code) {
+  async facebookLogin(body) {
+    const { error } = validateSocialAuth(body);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    const { code } = body;
+
     const { data: tokenData } = await axios.get(
       'https://graph.facebook.com/v18.0/oauth/access_token',
       {

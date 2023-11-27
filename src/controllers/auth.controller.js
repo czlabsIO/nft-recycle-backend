@@ -9,8 +9,7 @@ class AuthController {
   }
 
   async discordLogin(req, res) {
-    const { code } = req.body;
-    const authToken = await authService.discordLogin(code);
+    const authToken = await authService.discordLogin(req.body);
     res.send({ message: 'Successfully logged in with discord', authToken });
   }
 
@@ -20,8 +19,7 @@ class AuthController {
   }
 
   async googleLogin(req, res) {
-    const { code } = req.body;
-    const authToken = await authService.googleLogin(code);
+    const authToken = await authService.googleLogin(req.body);
     res.send({ message: 'Successfully logged in with google', authToken });
   }
 
@@ -31,8 +29,7 @@ class AuthController {
   }
 
   async twitterLogin(req, res) {
-    const { code } = req.body;
-    const authToken = await authService.twitterLogin(code);
+    const authToken = await authService.twitterLogin(req.body);
     res.send({ message: 'Successfully logged in with twitter', authToken });
   }
 
@@ -42,8 +39,7 @@ class AuthController {
   }
 
   async facebookLogin(req, res) {
-    const { code } = req.body;
-    const authToken = await authService.facebookLogin(code);
+    const authToken = await authService.facebookLogin(req.body);
     res.send({ message: 'Successfully logged in with facebook', authToken });
   }
 

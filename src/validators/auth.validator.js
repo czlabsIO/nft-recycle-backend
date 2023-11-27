@@ -9,6 +9,14 @@ function validateAuth(body) {
   return result;
 }
 
+function validateSocialAuth(body) {
+  const schema = Joi.object({
+    code: Joi.string().required(),
+  });
+  const result = schema.validate(body);
+  return result;
+}
+
 function validateWalletLogin(body) {
   const schema = Joi.object({
     blockchain: Joi.string().valid('ETHEREUM', 'SOLANA').required(),
@@ -22,5 +30,6 @@ function validateWalletLogin(body) {
 
 module.exports = {
   validateAuth,
+  validateSocialAuth,
   validateWalletLogin,
 };
