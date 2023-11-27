@@ -53,7 +53,15 @@ class UserService {
     if (query.key) {
       const condition = new RegExp(query.key, 'i');
       const filteredNfts = nfts.filter((item) => {
-        return condition.test(item.name);
+        const mints = item.mints.filter((mint) => {
+          return condition.test(mint.name);
+        });
+        if (mints.length > 0) {
+          item.mints = mints;
+          return true;
+        } else {
+          return condition.test(item.name);
+        }
       });
       nfts = filteredNfts;
     }
