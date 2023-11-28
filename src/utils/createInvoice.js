@@ -1,7 +1,11 @@
 const _ = require('lodash');
-const path = require('path');
 const PDFDocument = require('pdfkit');
 const { SOLANA_CLUSTER, NODE_ENV } = process.env;
+
+const headerText =
+  "Thanks for rolling with NFT Recycle! Dropping below is the deets of your epic transaction. With your summary and the original cost basis of those sold assets, you're set to mint some serious tax optimization. Let's get those gains! #NFTLife";
+const footerText =
+  "Got any degen pals craving some NFT tax hacks? Hook them up by blasting this tool on Twitter! Hook your buddies up with killer write-offs and score a shot at snagging an epic rug straight from our stash. We're selecting a lucky tweeter every month. Join the fun! #NFTLootDrop #ShareTheWealth #NFTCommunity";
 
 function createInvoice(invoice) {
   let doc = new PDFDocument({ size: 'A4', margin: 50 });
@@ -12,6 +16,8 @@ function createInvoice(invoice) {
   generateCustomerInformation(doc, invoice);
   generateInvoiceTable(doc, invoice);
   // generateFooter(doc);
+  doc.x = 50;
+  doc.moveDown(3).text(footerText, { align: 'center', width: 500 });
 
   doc.end();
   return doc;
@@ -19,14 +25,13 @@ function createInvoice(invoice) {
 
 function generateHeader(doc) {
   doc
-    .image(path.join(__dirname, '../assets/czlogo.png'), 50, 45, { width: 50 })
     .fillColor('#444444')
     .fontSize(20)
-    .text('Cz Labs', 110, 57)
-    .fontSize(10)
-    .text('123 Main Street', 200, 65, { align: 'right' })
-    .text('New York, NY, 10025', 200, 80, { align: 'right' })
-    .moveDown();
+    .font('Helvetica-Bold')
+    .text('Yo,', 50, 70)
+    .fontSize(11)
+    .font('Helvetica')
+    .text(headerText, 50, 100);
 }
 
 function generateCustomerInformation(doc, invoice) {

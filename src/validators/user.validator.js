@@ -5,8 +5,6 @@ function validateGenerateInvoice(body) {
     blockchain: Joi.string().valid('ETHEREUM', 'SOLANA').required(),
     fees: Joi.string().required(),
     feesTxHash: Joi.string().required(),
-    fund: Joi.string().required(),
-    fundTxHash: Joi.string().required(),
     assets: Joi.array()
       .required()
       .items(
@@ -14,7 +12,6 @@ function validateGenerateInvoice(body) {
           nft: Joi.string().required(),
           collectionName: Joi.string().required(),
           txHash: Joi.string().required(),
-          amount: Joi.string().required(),
         })
       ),
   });

@@ -133,6 +133,29 @@ class UserService {
     const { error } = validateGenerateInvoice(body);
     if (error) throw new BadRequest(error.details[0].message);
 
+    let retData = { hash: '', amount: '', single: '' };
+    try {
+      if (body.blockchain === 'ETHEREUM') {
+        retData = await this.web3Helper.transferEthFunds(
+          user.walletAddress,
+          body.assets.length
+        );
+      } else if (body.blockchain === 'SOLANA') {
+        retData = await this.web3Helper.transferSolFunds(
+          user.walletAddress,
+          body.assets.length
+        );
+      }
+      body.fund = retData.amount;
+      body.fundTxHash = retData.hash;
+      body.assets.map((asset) => {
+        asset.amount = retData.single;
+      });
+    } catch (err) {
+      logger.error(err);
+      throw new BadRequest(`Error in fund transfer - ${err}`);
+    }
+
     let doc = createInvoice(body);
     // doc.pipe(fs.createWriteStream('test.pdf'));
     const time = new Date().getTime();

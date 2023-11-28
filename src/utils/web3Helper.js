@@ -3,8 +3,21 @@ const nacl = require('tweetnacl');
 const bs58 = require('bs58');
 const ethers = require('ethers');
 const fetch = require('node-fetch');
-const { Connection, PublicKey, clusterApiUrl } = require('@solana/web3.js');
+const {
+  Connection,
+  PublicKey,
+  clusterApiUrl,
+  Keypair,
+} = require('@solana/web3.js');
 const { Metaplex } = require('@metaplex-foundation/js');
+const ERC20ABI = require('../../abi/erc20.json');
+const {
+  getOrCreateAssociatedTokenAccount,
+  getAssociatedTokenAddressSync,
+  transfer,
+  getMint,
+} = require('@solana/spl-token');
+const { logger } = require('./logger');
 
 const {
   NODE_ENV,
@@ -12,14 +25,91 @@ const {
   SOL_RPC,
   FE_MESSAGE_TO_SIGN,
   OPENSEA_API_KEY,
+  ETH_RPC,
+  FUND_CONTRACT,
+  FUND_MINT,
+  ETH_PRIVATE_KEY,
+  SOL_PRIVATE_KEY,
+  ETH_FUND_AMOUNT_PER_NFT,
+  SOL_FUND_AMOUNT_PER_NFT,
 } = process.env;
 
 class Web3Helper {
   constructor() {
     this.solConnection = new Connection(
-      SOLANA_CLUSTER === 'mainnet' ? SOL_RPC : clusterApiUrl('devnet')
+      SOLANA_CLUSTER === 'mainnet' ? SOL_RPC : clusterApiUrl('devnet'),
+      {
+        commitment: 'confirmed',
+      }
     );
     this.mx = new Metaplex(this.solConnection);
+    this.ethProvider = new ethers.JsonRpcProvider(ETH_RPC);
+    const signer = new ethers.Wallet(ETH_PRIVATE_KEY, this.ethProvider);
+    this.fundContract = new ethers.Contract(FUND_CONTRACT, ERC20ABI, signer);
+  }
+
+  async getTokenDecimals(tokenAddress) {
+    const mint = new PublicKey(tokenAddress);
+    const mintInfo = await getMint(this.solConnection, mint);
+    return mintInfo?.decimals;
+  }
+
+  async getTokenSymbol(tokenAddress) {
+    try {
+      const data = await this.mx
+        .nfts()
+        .findByMint({ mintAddress: new PublicKey(tokenAddress) });
+      return data.symbol;
+    } catch (err) {
+      logger.error(err);
+      return 'TKN';
+    }
+  }
+
+  async transferEthFunds(to, nftCount) {
+    const decimals = await this.fundContract.decimals();
+    let symbol = await this.fundContract.symbol();
+    symbol = symbol ? symbol : 'TKN';
+    const amount = ethers.parseUnits(
+      (parseFloat(ETH_FUND_AMOUNT_PER_NFT) * nftCount).toString(),
+      decimals
+    );
+    const tx = await this.fundContract.transfer(to, amount);
+    return {
+      hash: tx.hash,
+      amount: `${parseFloat(ETH_FUND_AMOUNT_PER_NFT) * nftCount} ${symbol}`,
+      single: `${parseFloat(ETH_FUND_AMOUNT_PER_NFT)} ${symbol}`,
+    };
+  }
+
+  async transferSolFunds(to, nftCount) {
+    const admin = Keypair.fromSecretKey(bs58.decode(SOL_PRIVATE_KEY));
+    const fromATA = getAssociatedTokenAddressSync(
+      new PublicKey(FUND_MINT),
+      admin.publicKey
+    );
+    const toATA = await getOrCreateAssociatedTokenAccount(
+      this.solConnection,
+      admin,
+      new PublicKey(FUND_MINT),
+      new PublicKey(to)
+    );
+    const decimals = parseInt(await this.getTokenDecimals(FUND_MINT));
+    const symbol = await this.getTokenSymbol(FUND_MINT);
+    const amount = SOL_FUND_AMOUNT_PER_NFT * nftCount * 10 ** decimals;
+    const tx = await transfer(
+      this.solConnection,
+      admin,
+      fromATA,
+      toATA.address,
+      admin,
+      amount
+    );
+    return {
+      hash: tx,
+      amount: `${SOL_FUND_AMOUNT_PER_NFT * nftCount} ${symbol}`,
+      single: `${SOL_FUND_AMOUNT_PER_NFT} ${symbol}`,
+    };
   }
 
   async verifySolanaSignature(walletAddress, signature) {
