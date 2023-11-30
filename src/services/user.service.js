@@ -40,7 +40,9 @@ class UserService {
   }
 
   async getSolanaNfts(user, query) {
-    if (!user.walletAddress) throw new BadRequest('No wallet address found');
+    if (!user.walletAddress) {
+      throw new BadRequest('No wallet address found');
+    }
 
     let nfts = [];
     try {
@@ -84,7 +86,9 @@ class UserService {
   }
 
   async getEthereumNfts(user, query) {
-    if (!user.walletAddress) throw new BadRequest('No wallet address found');
+    if (!user.walletAddress) {
+      throw new BadRequest('No wallet address found');
+    }
 
     let nfts = await getEthereumNfts(user.walletAddress);
 
@@ -131,7 +135,9 @@ class UserService {
 
   async generateInvoice(user, body) {
     const { error } = validateGenerateInvoice(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     let retData = { hash: '', amount: '', single: '' };
     try {
@@ -156,8 +162,7 @@ class UserService {
       throw new BadRequest(`Error in fund transfer - ${err}`);
     }
 
-    let doc = createInvoice(body);
-    // doc.pipe(fs.createWriteStream('test.pdf'));
+    const doc = createInvoice(body);
     const time = new Date().getTime();
     const { Key, Location } = await uploadToS3(doc, `${time}.pdf`);
 
@@ -185,7 +190,9 @@ class UserService {
 
   async addEmail(user, body) {
     const { error } = validateAddEmail(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     if (user.email) {
       throw new BadRequest('User email already present');

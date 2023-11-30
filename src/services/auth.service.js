@@ -41,7 +41,9 @@ class AuthService {
 
   async discordLogin(body) {
     const { error } = validateSocialAuth(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     const { code } = body;
 
@@ -88,7 +90,9 @@ class AuthService {
 
   async googleLogin(body) {
     const { error } = validateSocialAuth(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     const { code } = body;
 
@@ -132,7 +136,9 @@ class AuthService {
 
   async twitterLogin(body) {
     const { error } = validateSocialAuth(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     const { code } = body;
 
@@ -184,7 +190,9 @@ class AuthService {
 
   async facebookLogin(body) {
     const { error } = validateSocialAuth(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     const { code } = body;
 
@@ -224,7 +232,9 @@ class AuthService {
 
   async signup(body) {
     const { error } = validateAuth(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     let user = await this.userService.getUserByEmail(body.email);
     if (user) {
@@ -240,20 +250,28 @@ class AuthService {
 
   async login(body) {
     const { error } = validateAuth(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
-    let user = await this.userService.getUserByEmail(body.email);
-    if (!user) throw new BadRequest('User not found');
+    const user = await this.userService.getUserByEmail(body.email);
+    if (!user) {
+      throw new BadRequest('User not found');
+    }
 
     const correctPassword = user.verifyPassword(body.password);
-    if (!correctPassword) throw new BadRequest('Incorrect password');
+    if (!correctPassword) {
+      throw new BadRequest('Incorrect password');
+    }
 
     return user.generateAuthToken();
   }
 
   async walletLogin(body, user) {
     const { error } = validateWalletLogin(body);
-    if (error) throw new BadRequest(error.details[0].message);
+    if (error) {
+      throw new BadRequest(error.details[0].message);
+    }
 
     const { blockchain, walletAddress, signature, isLedger } = body;
 
@@ -274,19 +292,23 @@ class AuthService {
         signature
       );
     }
-    if (!result) throw new BadRequest('Signature verification failed');
+    if (!result) {
+      throw new BadRequest('Signature verification failed');
+    }
 
     if (user) {
       user.walletAddress = walletAddress;
       await user.save();
     } else {
-      let user = await this.userService.getUserByWalletAddress(walletAddress);
-      if (!user) {
-        user = await this.userService.createUser({
+      let checkUser = await this.userService.getUserByWalletAddress(
+        walletAddress
+      );
+      if (!checkUser) {
+        checkUser = await this.userService.createUser({
           walletAddress,
         });
       }
-      return user.generateAuthToken();
+      return checkUser.generateAuthToken();
     }
     return user.generateAuthToken();
   }

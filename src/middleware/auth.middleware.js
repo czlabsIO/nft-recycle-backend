@@ -6,11 +6,15 @@ const usersService = new UsersService();
 
 const auth = async (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
-  if (!token) throw new Unauthorized('Access denied, no token found.');
+  if (!token) {
+    throw new Unauthorized('Access denied, no token found.');
+  }
   try {
     const { _id } = jwt.verify(token, process.env.JWT_SECRET);
     const user = await usersService.getUserById(_id);
-    if (!user) throw new BadRequest('User not found');
+    if (!user) {
+      throw new BadRequest('User not found');
+    }
     req.user = user;
     next();
   } catch (ex) {
@@ -28,7 +32,9 @@ const checkAuthToken = async (req, res, next) => {
   try {
     const { _id } = jwt.verify(token, process.env.JWT_SECRET);
     const user = await usersService.getUserById(_id);
-    if (!user) throw new BadRequest('User not found');
+    if (!user) {
+      throw new BadRequest('User not found');
+    }
     req.user = user;
     next();
   } catch (ex) {

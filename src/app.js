@@ -10,6 +10,7 @@ const { connectMoralis } = require('./utils/moralis');
 const routes = require('./routes/routes');
 
 const app = express();
+app.disable('x-powered-by');
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));

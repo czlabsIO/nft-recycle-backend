@@ -19,7 +19,7 @@ const connectMoralis = async () => {
 const getEthereumNfts = async (wallet) => {
   try {
     let cursor = null;
-    let nfts = [];
+    const nfts = [];
     const chain =
       NODE_ENV === 'development' ? EvmChain.SEPOLIA : EvmChain.ETHEREUM;
     do {
@@ -32,11 +32,11 @@ const getEthereumNfts = async (wallet) => {
       });
       nfts.push(...response.jsonResponse.result);
       cursor = response.jsonResponse.cursor;
-    } while (cursor != '' && cursor != null);
-    return nfts;
+    } while (cursor !== '' && cursor !== null);
   } catch (err) {
     logger.error(err);
   }
+  return nfts;
 };
 
 module.exports = { connectMoralis, getEthereumNfts };

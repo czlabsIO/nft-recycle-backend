@@ -15,8 +15,7 @@ function validateGenerateInvoice(body) {
         })
       ),
   });
-  const result = schema.validate(body);
-  return result;
+  return schema.validate(body);
 }
 
 function validateAddEmail(body) {
@@ -24,8 +23,7 @@ function validateAddEmail(body) {
     email: Joi.string().email().required(),
     key: Joi.string().required(),
   });
-  const result = schema.validate(body);
-  return result;
+  return schema.validate(body);
 }
 
 module.exports = {

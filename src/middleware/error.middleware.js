@@ -16,7 +16,7 @@ module.exports = function (err, req, res, next) {
     });
   }
 
-  res.status(500).send({
+  return res.status(500).send({
     error: { message: 'Internal Server Error', description: err.message },
   });
 };

@@ -115,12 +115,11 @@ class Web3Helper {
   async verifySolanaSignature(walletAddress, signature) {
     const message = new TextEncoder().encode(FE_MESSAGE_TO_SIGN);
     const pubKeyUint8 = bs58.decode(walletAddress);
-    const result = nacl.sign.detached.verify(
+    return nacl.sign.detached.verify(
       message,
       new Uint8Array(bs58.decode(signature)),
       pubKeyUint8
     );
-    return result;
   }
 
   async verifyEthSignature(walletAddress, signature) {
@@ -151,7 +150,7 @@ class Web3Helper {
   }
 
   async getEthereumNfts(walletAddress) {
-    let uri =
+    const uri =
       NODE_ENV === 'production'
         ? `https://api.opensea.io/api/v2/chain/ethereum/account/${walletAddress}/nfts`
         : `https://testnets-api.opensea.io/api/v2/chain/sepolia/account/${walletAddress}/nfts`;
@@ -164,10 +163,10 @@ class Web3Helper {
       };
     }
     let next = '';
-    let nfts = [];
-    while (next != null) {
+    const nfts = [];
+    while (next !== null) {
       let url = uri;
-      if (next != '') {
+      if (next !== '') {
         url += `?next=${next}`;
       }
       const openseaRet = await axios.get(url, options);
@@ -218,7 +217,7 @@ class Web3Helper {
         rarityRankTT
       }`,
     });
-    const graphql_res = await fetch('https://graphql.tensor.trade/graphql', {
+    const graphqlRes = await fetch('https://graphql.tensor.trade/graphql', {
       headers: {
         accept: '*/*',
         'accept-language': 'en,en-US;q=0.9',
@@ -237,8 +236,8 @@ class Web3Helper {
       method: 'POST',
     });
 
-    const graphql_data = await graphql_res.json();
-    return graphql_data.data.inventoryBySlug;
+    const graphqlData = await graphqlRes.json();
+    return graphqlData.data.inventoryBySlug;
   }
 }
 

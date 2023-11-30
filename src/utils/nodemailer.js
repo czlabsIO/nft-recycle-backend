@@ -28,9 +28,9 @@ const sendMailWithTemplate = async (params) => {
     let htmlTemplate = fs.readFileSync(suPath, 'utf8');
     const currentDate = getCurrentDate();
     htmlTemplate = htmlTemplate.replace('{{currentDate}}', currentDate);
-    let subject = 'NFT Recycle Invoice';
+    const subject = 'NFT Recycle Invoice';
 
-    let info = await transporter.sendMail({
+    await transporter.sendMail({
       from: EMAIL_ID,
       to: params.to,
       subject,

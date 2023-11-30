@@ -43,10 +43,12 @@ const userSchema = mongoose.Schema(
 
 userSchema.pre('save', function (next) {
   const user = this;
-  if (!user.isModified('password')) return next();
+  if (!user.isModified('password')) {
+    return next();
+  }
   const hash = crypto.createHash('sha256').update(user.password).digest('hex');
   user.password = hash;
-  next();
+  return next();
 });
 
 userSchema.methods.verifyPassword = function (password) {

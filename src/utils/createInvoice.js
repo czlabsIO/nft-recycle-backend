@@ -8,14 +8,13 @@ const footerText =
   "Got any degen pals craving some NFT tax hacks? Hook them up by blasting this tool on Twitter! Hook your buddies up with killer write-offs and score a shot at snagging an epic rug straight from our stash. We're selecting a lucky tweeter every month. Join the fun! #NFTLootDrop #ShareTheWealth #NFTCommunity";
 
 function createInvoice(invoice) {
-  let doc = new PDFDocument({ size: 'A4', margin: 50 });
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
   doc.on('pageAdded', () => doc.fillColor('#444444').fontSize(10));
 
   generateHeader(doc);
   generateCustomerInformation(doc, invoice);
   generateInvoiceTable(doc, invoice);
-  // generateFooter(doc);
   doc.x = 50;
   doc.moveDown(3).text(footerText, { align: 'center', width: 500 });
 
@@ -105,7 +104,7 @@ function generateInvoiceTable(doc, invoice) {
 
   const firstPage = invoice.assets.slice(0, 14);
   const items = _.chunk(invoice.assets.slice(14), 24);
-  for (i = 0; i < firstPage.length; i++) {
+  for (let i = 0; i < firstPage.length; i++) {
     const item = firstPage[i];
     const position = invoiceItems + (i + 1) * 30;
     const tx =
@@ -125,7 +124,7 @@ function generateInvoiceTable(doc, invoice) {
   for (let i = 0; i < items.length; i++) {
     doc.addPage();
     invoiceItems = 50;
-    for (j = 0; j < items[i].length; j++) {
+    for (let j = 0; j < items[i].length; j++) {
       const item = items[i][j];
       const position = invoiceItems + (j + 1) * 30;
       const tx =
@@ -175,7 +174,7 @@ function formatDate(date) {
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
 
-  return year + '/' + month + '/' + day;
+  return `${year}/${month}/${day}`;
 }
 
 module.exports = {

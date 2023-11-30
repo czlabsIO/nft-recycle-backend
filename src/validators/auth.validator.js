@@ -5,16 +5,14 @@ function validateAuth(body) {
     email: Joi.string().email().required(),
     password: Joi.string().min(7).required(),
   });
-  const result = schema.validate(body);
-  return result;
+  return schema.validate(body);
 }
 
 function validateSocialAuth(body) {
   const schema = Joi.object({
     code: Joi.string().required(),
   });
-  const result = schema.validate(body);
-  return result;
+  return schema.validate(body);
 }
 
 function validateWalletLogin(body) {
@@ -24,8 +22,7 @@ function validateWalletLogin(body) {
     signature: Joi.string().required(),
     isLedger: Joi.boolean().required(),
   });
-  const result = schema.validate(body);
-  return result;
+  return schema.validate(body);
 }
 
 module.exports = {
