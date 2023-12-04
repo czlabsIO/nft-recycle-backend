@@ -17,9 +17,9 @@ const connectMoralis = async () => {
 };
 
 const getEthereumNfts = async (wallet) => {
+  const nfts = [];
   try {
     let cursor = null;
-    const nfts = [];
     const chain =
       NODE_ENV === 'development' ? EvmChain.SEPOLIA : EvmChain.ETHEREUM;
     do {
