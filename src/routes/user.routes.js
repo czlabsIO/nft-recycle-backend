@@ -10,5 +10,6 @@ router.get('/getEthereumNfts', auth, userController.getEthereumNfts);
 router.get('/getDetails', auth, userController.getUserDetails);
 router.post('/generateInvoice', auth, userController.generateInvoice);
 router.post('/addEmail', auth, userController.addEmail);
+router.get('/getInvoices', auth, userController.getInvoices);
 
 module.exports = router;

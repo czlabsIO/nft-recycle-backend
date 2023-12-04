@@ -6,6 +6,7 @@ const Invoice = require('../models/invoice');
 const {
   validateGenerateInvoice,
   validateAddEmail,
+  validateGetInvoices,
 } = require('../validators/user.validator');
 const { createInvoice } = require('../utils/createInvoice');
 const { uploadToS3 } = require('../utils/amazonS3');
@@ -194,19 +195,18 @@ class UserService {
       throw new BadRequest(error.details[0].message);
     }
 
-    if (user.email) {
-      throw new BadRequest('User email already present');
-    }
     const invoice = await Invoice.findOne({ userId: user._id, key: body.key });
     if (!invoice) {
       throw new BadRequest('No invoice found');
     }
 
-    user.email = body.email;
-    await user.save();
+    if (!user.email) {
+      user.email = body.email;
+      await user.save();
+    }
 
     await this.sendInvoiceEmail(
-      user.email,
+      body.email,
       `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${invoice.key}`
     );
   }
@@ -214,6 +214,30 @@ class UserService {
   async sendInvoiceEmail(to, receipt) {
     const info = await sendMailWithTemplate({ to, receipt });
     return { info };
+  }
+
+  async getInvoices(user, query) {
+    const { error } = validateGetInvoices(query);
+    if (error) throw new BadRequest(error.details[0].message);
+
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+
+    const dbQuery = {
+      userId: user._id,
+    };
+    const invoices = await Invoice.find(dbQuery)
+      .skip(startIndex)
+      .limit(limit)
+      .lean();
+    const total = await Invoice.countDocuments(dbQuery);
+    const pagination = {
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+    };
+    return { invoices, pagination };
   }
 }
 

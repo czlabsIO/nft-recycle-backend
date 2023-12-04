@@ -26,7 +26,16 @@ function validateAddEmail(body) {
   return schema.validate(body);
 }
 
+function validateGetInvoices(body) {
+  const schema = Joi.object({
+    page: Joi.number(),
+    limit: Joi.number(),
+  });
+  return schema.validate(body);
+}
+
 module.exports = {
   validateGenerateInvoice,
   validateAddEmail,
+  validateGetInvoices,
 };

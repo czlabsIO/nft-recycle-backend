@@ -1,4 +1,5 @@
 const { default: mongoose } = require('mongoose');
+const { AWS_BUCKET_NAME, AWS_REGION } = process.env;
 
 const invoiceSchema = mongoose.Schema(
   {
@@ -54,6 +55,12 @@ invoiceSchema.virtual('user', {
   localField: 'user',
   foreignField: '_id',
   justOne: true,
+});
+
+invoiceSchema.post('find', async function (docs) {
+  for (const doc of docs) {
+    doc.invoice = `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${doc.key}`;
+  }
 });
 
 invoiceSchema.set('toJSON', { virtuals: true });

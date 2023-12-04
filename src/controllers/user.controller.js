@@ -26,6 +26,11 @@ class UserController {
     await userService.addEmail(req.user, req.body);
     res.send({ success: true, message: 'Email sent successfully' });
   }
+
+  async getInvoices(req, res) {
+    const invoices = await userService.getInvoices(req.user, req.query);
+    res.send({ success: true, data: invoices });
+  }
 }
 
 module.exports = UserController;
