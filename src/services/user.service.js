@@ -227,10 +227,12 @@ class UserService {
     const dbQuery = {
       userId: user._id,
     };
-    const invoices = await Invoice.find(dbQuery)
-      .skip(startIndex)
-      .limit(limit)
-      .lean();
+    const invoices = await Invoice.aggregate([
+      { $match: dbQuery },
+      { $sort: { createdAt: -1 } },
+      { $skip: startIndex },
+      { $limit: limit },
+    ]);
     const total = await Invoice.countDocuments(dbQuery);
     const pagination = {
       currentPage: page,
