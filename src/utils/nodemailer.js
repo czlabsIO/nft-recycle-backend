@@ -42,6 +42,7 @@ const sendMailWithTemplate = async (params) => {
         },
       ],
     });
+    logger.info('Email sent', { to: params.to, receipt: params.receipt });
   } catch (error) {
     logger.error('Error in sending email >> %O', error);
   }
