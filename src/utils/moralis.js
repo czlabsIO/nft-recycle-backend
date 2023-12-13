@@ -2,7 +2,7 @@ const Moralis = require('moralis').default;
 const { EvmChain } = require('@moralisweb3/common-evm-utils');
 const { logger } = require('./logger');
 
-const { MORALIS_API_KEY, NODE_ENV } = process.env;
+const { MORALIS_API_KEY, MORALIS_CHAIN } = process.env;
 
 const connectMoralis = async () => {
   try {
@@ -21,7 +21,7 @@ const getEthereumNfts = async (wallet) => {
   try {
     let cursor = null;
     const chain =
-      NODE_ENV === 'development' ? EvmChain.SEPOLIA : EvmChain.ETHEREUM;
+      MORALIS_CHAIN === 'ethereum' ? EvmChain.ETHEREUM : EvmChain.SEPOLIA;
     do {
       const response = await Moralis.EvmApi.nft.getWalletNFTs({
         chain,
