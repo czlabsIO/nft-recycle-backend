@@ -232,6 +232,16 @@ class UserService {
       { $sort: { createdAt: -1 } },
       { $skip: startIndex },
       { $limit: limit },
+      {
+        $addFields: {
+          invoice: {
+            $concat: [
+              `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/`,
+              '$key',
+            ],
+          },
+        },
+      },
     ]);
     const total = await Invoice.countDocuments(dbQuery);
     const pagination = {
