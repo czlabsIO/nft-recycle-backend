@@ -168,7 +168,7 @@ function generateFooter(doc) {
   .text('Have more NFTs to Sell? Sell \'em ', { continued: true })
   .fillColor('blue') 
   .text('here', {
-    link: "https://nftrecycle.io",
+    link: "https://www.nftrecycle.tax/",
     underline: true,
     continued: true
   })
@@ -205,8 +205,8 @@ function generateTableRow(doc, y, date, nft, type, amount, transaction = null) {
     .fontSize(10)
     .text(date, 50, y)
     .text(nft, 130, y, obj)
-    .text(type, 350, y, { width: 90 })
-    .text(amount, 450, y, { width: 200 })
+    .text(type, 370, y, { width: 90 })
+    .text(amount, 470, y, { width: 200 })
     .moveDown();
 }
 
