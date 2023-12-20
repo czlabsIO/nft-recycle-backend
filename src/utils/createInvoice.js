@@ -205,8 +205,8 @@ function generateTableRow(doc, y, date, nft, type, amount, transaction = null) {
     .fontSize(10)
     .text(date, 50, y)
     .text(nft, 130, y, obj)
-    .text(type, 400, y, { width: 90 })
-    .text(amount, 500, y)
+    .text(type, 350, y, { width: 90 })
+    .text(amount, 450, y, { width: 200 })
     .moveDown();
 }
 
