@@ -116,7 +116,7 @@ function generateInvoiceTable(doc, invoice) {
       position,
       formatDate(new Date()),
       item.nft,
-      'You received',
+      'You transferred',
       item.amount,
       tx
     );
@@ -136,7 +136,7 @@ function generateInvoiceTable(doc, invoice) {
         position,
         formatDate(new Date()),
         item.nft,
-        'You received',
+        'You transferred',
         item.amount,
         tx
       );
