@@ -1,23 +1,27 @@
 const _ = require('lodash');
 const PDFDocument = require('pdfkit');
 const { SOLANA_CLUSTER, NODE_ENV } = process.env;
+const path = require('path');
 
 const headerText =
-  "Thanks for rolling with NFT Recycle! Dropping below is the deets of your epic transaction. With your summary and the original cost basis of those sold assets, you're set to mint some serious tax optimization. Let's get those gains! #NFTLife";
+  "Thanks for using NFT Recycle! Below is a detailed summary of your transaction Your summary (along with your sold assets original cost basis) will help you optimize your taxes:";
 const footerText =
-  "Got any degen pals craving some NFT tax hacks? Hook them up by blasting this tool on Twitter! Hook your buddies up with killer write-offs and score a shot at snagging an epic rug straight from our stash. We're selecting a lucky tweeter every month. Join the fun! #NFTLootDrop #ShareTheWealth #NFTCommunity";
+  "Have some degen friends that could use some NFT Write-Offs? Do them a solid and share this tool on Twitter! (plus you'll be helping out the three scrappy entrepreneurs that built this!)";
 
 function createInvoice(invoice) {
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
   doc.on('pageAdded', () => doc.fillColor('#444444').fontSize(10));
-
+  doc.lineGap(3);
   generateHeader(doc);
-  generateCustomerInformation(doc, invoice);
   generateInvoiceTable(doc, invoice);
   doc.x = 50;
-  doc.moveDown(3).text(footerText, { align: 'center', width: 500 });
-
+  doc.moveDown(3)
+  generateMiddle(doc);
+  doc.moveDown(1)
+  generateImage(doc);
+  doc.moveDown(1)
+  generateFooter(doc);
   doc.end();
   return doc;
 }
@@ -27,7 +31,7 @@ function generateHeader(doc) {
     .fillColor('#444444')
     .fontSize(20)
     .font('Helvetica-Bold')
-    .text('Yo,', 50, 70)
+    .text('Hi there,', 50, 70)
     .fontSize(11)
     .font('Helvetica')
     .text(headerText, 50, 100);
@@ -55,7 +59,7 @@ function generateCustomerInformation(doc, invoice) {
 
 function generateInvoiceTable(doc, invoice) {
   let i;
-  const invoiceTableTop = 300;
+  const invoiceTableTop = 180;
   const solBaseUrl = 'https://solscan.io/tx/';
   const ethBaseUrl =
     NODE_ENV === 'production'
@@ -93,20 +97,20 @@ function generateInvoiceTable(doc, invoice) {
   );
   generateTableRow(
     doc,
-    invoiceTableTop + 60,
+    invoiceTableTop + 50,
     formatDate(new Date()),
-    'Funds Recieved',
+    'Funds Received',
     'You received',
     invoice.fund,
     fundTx
   );
-  let invoiceItems = invoiceTableTop + 60;
+  let invoiceItems = invoiceTableTop + 50;
 
-  const firstPage = invoice.assets.slice(0, 14);
-  const items = _.chunk(invoice.assets.slice(14), 24);
+  const firstPage = invoice.assets.slice(0, 26);
+  const items = _.chunk(invoice.assets.slice(26), 36);
   for (let i = 0; i < firstPage.length; i++) {
     const item = firstPage[i];
-    const position = invoiceItems + (i + 1) * 30;
+    const position = invoiceItems + (i + 1) * 20;
     const tx =
       invoice.blockchain === 'SOLANA'
         ? solBaseUrl + `${item.txHash}?cluster=${SOLANA_CLUSTER}`
@@ -126,7 +130,7 @@ function generateInvoiceTable(doc, invoice) {
     invoiceItems = 50;
     for (let j = 0; j < items[i].length; j++) {
       const item = items[i][j];
-      const position = invoiceItems + (j + 1) * 30;
+      const position = invoiceItems + (j + 1) * 20;
       const tx =
         invoice.blockchain === 'SOLANA'
           ? solBaseUrl + `${item.txHash}?cluster=${SOLANA_CLUSTER}`
@@ -144,11 +148,52 @@ function generateInvoiceTable(doc, invoice) {
   }
 }
 
+function generateMiddle(doc) {
+
+  doc.fontSize(10)
+  .text('Note: All dates are in UTC', {
+    align: 'left',
+    width: 500,
+  })
+  .moveDown(4)
+  .text(`${footerText}`,{
+    align: 'left',
+    width: 500,
+  })
+}
+
 function generateFooter(doc) {
-  doc.fontSize(10).text('This is a system generated receipt', 50, 780, {
-    align: 'center',
+
+  doc.fontSize(10)
+  .text('Have more NFTs to Sell? Sell \'em ', { continued: true })
+  .fillColor('blue') 
+  .text('here', {
+    link: "https://www.nftrecycle.tax/",
+    underline: true,
+    continued: true
+  })
+  .text('!')
+  .fillColor('#444444') 
+  .moveDown(5)
+  .text(`Keep Doing it for the Write-Off.`, {
+    align: 'left',
+    width: 500,
+  })
+  .text(`The NFT Recycle Team`,{
+    align: 'left',
     width: 500,
   });
+}
+
+function generateImage(doc) {
+  const imagePath = path.join(__dirname, '../assets/twitter.png');
+
+  doc
+  .image(`${imagePath}`, 250, doc.y,{
+    fit: [100, 100],
+    align: 'center',
+    link: "https://twitter.com/home"
+  })
 }
 
 function generateTableRow(doc, y, date, nft, type, amount, transaction = null) {
@@ -160,8 +205,8 @@ function generateTableRow(doc, y, date, nft, type, amount, transaction = null) {
     .fontSize(10)
     .text(date, 50, y)
     .text(nft, 130, y, obj)
-    .text(type, 400, y, { width: 90 })
-    .text(amount, 500, y)
+    .text(type, 370, y, { width: 90 })
+    .text(amount, 470, y, { width: 200 })
     .moveDown();
 }
 
@@ -170,11 +215,14 @@ function generateHr(doc, y) {
 }
 
 function formatDate(date) {
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  const year = date.getFullYear();
-
-  return `${year}/${month}/${day}`;
+  const formattedDate = new Intl.DateTimeFormat('en-US', {
+    month: 'short', 
+    day: '2-digit',  
+    year: 'numeric', 
+    timeZone: 'UTC'
+  }).format(date);
+  
+  return formattedDate;
 }
 
 module.exports = {

@@ -178,9 +178,6 @@ class UserService {
       key: Key,
       assets: body.assets,
     });
-    if (user.email) {
-      await this.sendInvoiceEmail(user.email, Location);
-    }
     return {
       invoice,
       link: Location,
